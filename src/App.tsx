@@ -6,12 +6,12 @@ import { LoginPage } from './pages/LoginPage';
 import Dashboard from './pages/Dashboard';
 import SharedProjectPage from './pages/SharedProjectPage';
 import WelcomePage from './pages/WelcomePage';
-import Notification from './components/Notification'; // <-- IMPORT THE NEW NOTIFICATION COMPONENT
+import Notification from './components/Notification'; // <-- IMPORTED THE NEW NOTIFICATION COMPONENT
 
 // Import Firebase authentication and firestore instances
 import { auth, db } from './firebase'; // Adjust path if your firebase config is elsewhere
 import { onAuthStateChanged, User as FirebaseAuthUser, signInWithEmailAndPassword, signOut } from 'firebase/auth'; // <-- ADDED signOut
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc } from 'firebase/firestore'; // <-- ADDED setDoc
 
 // Helper function (remains the same)
 const hexToHslString = (hex: string): string => {
@@ -195,8 +195,13 @@ const AppContent: React.FC = () => {
         if (!user) {
             return <LoginPage onLogin={handleLogin} />;
         }
-        // Pass handleLogout to the Dashboard component
-        return <Dashboard onLogout={handleLogout} />; // <-- Pass onLogout prop
+        // Pass handleLogout and showNotification to the Dashboard component
+        return (
+            <Dashboard
+                onLogout={handleLogout}
+                showNotification={showNotification}
+            />
+        );
     })();
 
     return (
