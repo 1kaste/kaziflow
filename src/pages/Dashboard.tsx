@@ -1,97 +1,66 @@
-
-
-
-
-
-
-
-
-
-import React, { useState } from 'react';
+// src/pages/Dashboard.tsx
+import React from 'react';
 import { useAppContext } from '../context/AppContext';
-import { Page, MoodboardItem } from '../types';
-import Sidebar from '../components/Sidebar';
-import Header from '../components/Header';
-import ProjectsPage from './ProjectsPage';
-import MasterCalendarPage from './MasterCalendarPage';
-import ClientsPage from './ClientsPage';
-import { MoodboardPage } from './MoodboardPage';
-import SettingsPage from './SettingsPage';
-import DashboardPage from './DashboardPage';
-import UsersPage from './UsersPage';
-import Footer from '../components/Footer';
-import PomodoroPage from './PomodoroPage';
-import CollaborationPage from './CollaborationPage';
+import Sidebar from '../components/Sidebar'; // Assuming Sidebar is in components, adjust path if different
 
-const Dashboard: React.FC = () => {
-    const { activePage, projects, setProjects } = useAppContext();
-    const [isSidebarOpen, setSidebarOpen] = useState(false);
+interface DashboardProps {
+    onLogout: () => Promise<void>;
+    showNotification: (message: string, type: 'success' | 'error') => void; // Add this prop
+}
 
-    const renderActivePage = () => {
-        switch (activePage) {
-            case Page.Projects:
-                return <ProjectsPage />;
-            case Page.MasterCalendar:
-                return <MasterCalendarPage />;
-            case Page.Clients:
-                return <ClientsPage />;
-            case Page.Users:
-                return <UsersPage />;
-            case Page.Moodboard: {
-                const phoenixProject = projects.find(p => p.name === 'Project Phoenix');
-                if (!phoenixProject) return <div>Project "Project Phoenix" not found.</div>;
+const Dashboard: React.FC<DashboardProps> = ({ onLogout, showNotification }) => {
+    const { user } = useAppContext();
 
-                const handlePhoenixMoodboardChange = (updates: { items?: MoodboardItem[], trashedItems?: MoodboardItem[] }) => {
-                    const updatedProject = { 
-                        ...phoenixProject, 
-                        moodboardItems: updates.items !== undefined ? updates.items : phoenixProject.moodboardItems,
-                        trashedMoodboardItems: updates.trashedItems !== undefined ? updates.trashedItems : phoenixProject.trashedMoodboardItems,
-                    };
-                    setProjects(prevProjects => prevProjects.map(p => p.id === phoenixProject.id ? updatedProject : p));
-                };
+    // You might need state to manage mobile sidebar open/close if it's not handled by App.tsx
+    // For simplicity, this example just uses the props
+    // const [isMobileSidebarOpen, setIsMobileSidebarOpen] = React.useState(false);
 
-                return (
-                    <MoodboardPage
-                        title="Project Phoenix: Moodboard"
-                        items={phoenixProject.moodboardItems}
-                        trashedItems={phoenixProject.trashedMoodboardItems}
-                        onUpdateMoodboard={handlePhoenixMoodboardChange}
-                        isEditable={true}
-                    />
-                );
-            }
-            case Page.Pomodoro:
-                return <PomodoroPage />;
-            case Page.Settings:
-                return <SettingsPage />;
-            case Page.Collaboration:
-                return <CollaborationPage />;
-            case Page.Dashboard:
-            default:
-                return <DashboardPage />;
-        }
-    };
 
+    // This is just an example; your actual Dashboard layout might differ
     return (
-        <div className="flex h-screen bg-light-primary dark:bg-dark-primary text-gray-800 dark:text-gray-200 relative">
-            {/* Mobile Sidebar */}
-            <div className={`fixed inset-0 z-40 md:hidden transition-opacity ${isSidebarOpen ? 'bg-black/60' : 'pointer-events-none opacity-0'}`} onClick={() => setSidebarOpen(false)}></div>
-            <div className={`fixed z-50 md:hidden h-full top-0 left-0 transition-transform transform ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
-                 <Sidebar isMobile={true} onLinkClick={() => setSidebarOpen(false)} />
-            </div>
+        <div className="flex min-h-screen">
+            {/* Sidebar rendered here */}
+            <Sidebar
+                onLogout={onLogout} // Pass onLogout
+                showNotification={showNotification} // Pass showNotification
+                // If you have mobile sidebar logic, pass it here
+                // isMobile={isMobileSidebarOpen}
+                // onLinkClick={() => setIsMobileSidebarOpen(false)} // Close sidebar on link click
+            />
 
-            {/* Desktop Sidebar */}
-            <div className="hidden md:flex">
-                <Sidebar />
-            </div>
+            <main className="flex-1 p-8">
+                <h1 className="text-4xl font-bold mb-8">Welcome to your Dashboard!</h1>
+                {user && (
+                    <p className="text-xl mb-4">Hello, {user.name || user.email}!</p>
+                )}
+                <p className="text-lg text-gray-600 mb-8">
+                    This is your central hub for managing your projects and activities.
+                </p>
 
-            <div className="flex-1 flex flex-col overflow-hidden">
-                <Header onMenuClick={() => setSidebarOpen(p => !p)} />
-                <main className="flex-1 overflow-x-hidden overflow-y-auto p-4 sm:p-6 md:p-8">
-                    {renderActivePage()}
-                </main>
-                <Footer />
-            </div>
+                {/* The logout button is now in the Sidebar, so you can remove it from here if it was duplicated */}
+                {/* <button
+                    onClick={onLogout}
+                    className="px-6 py-3 bg-red-600 text-white rounded-lg shadow-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 transition duration-300"
+                >
+                    Logout
+                </button> */}
+
+                {/* Add more Dashboard content here */}
+                <div className="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full max-w-4xl">
+                    <div className="bg-white dark:bg-gray-700 p-6 rounded-lg shadow-md">
+                        <h3 className="text-xl font-semibold mb-2">My Projects</h3>
+                        <p className="text-gray-700 dark:text-gray-300">View and manage your active projects.</p>
+                    </div>
+                    <div className="bg-white dark:bg-gray-700 p-6 rounded-lg shadow-md">
+                        <h3 className="text-xl font-semibold mb-2">Team Collaboration</h3>
+                        <p className="text-gray-700 dark:text-gray-300">Collaborate with your team members.</p>
+                    </div>
+                    <div className="bg-white dark:bg-gray-700 p-6 rounded-lg shadow-md">
+                        <h3 className="text-xl font-semibold mb-2">Reports & Analytics</h3>
+                        <p className="text-gray-700 dark:text-gray-300">Access performance reports.</p>
+                    </div>
+                </div>
+            </main>
         </div>
     );
 };
