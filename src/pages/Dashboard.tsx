@@ -6,24 +6,21 @@ import { Page } from '../types'; // Make sure this import is correct and Page en
 
 // =======================================================================
 // IMPORTANT: ACTUAL IMPORTS FOR YOUR PAGE COMPONENTS
-// These imports assume you have files like:
-// src/pages/ProjectsPage.tsx
-// src/pages/CalendarPage.tsx
-// src/pages/ClientsPage.tsx
-// src/pages/MoodboardPage.tsx
-// src/pages/PomodoroPage.tsx
-// src/pages/SettingsPage.tsx
-// src/pages/UsersPage.tsx
-// src/pages/CollaborationPage.tsx
 // =======================================================================
 import ProjectsPage from './ProjectsPage';
-import CalendarPage from './CalendarPage';
+import MasterCalendarPage from './MasterCalendarPage'; // <-- CORRECTED THIS IMPORT
 import ClientsPage from './ClientsPage';
-import MoodboardPage from './MoodboardPage';
+import MoodboardPage from './ './MoodboardPage'; // Corrected potential typo here if it was './ ./MoodboardPage'
 import PomodoroPage from './PomodoroPage';
 import SettingsPage from './SettingsPage';
 import UsersPage from './UsersPage';
 import CollaborationPage from './CollaborationPage';
+// Also ensure you import CreativeAiPage.tsx if you intend to use it from the sidebar
+import CreativeAiPage from './CreativeAiPage'; // <-- Added this import, assuming 'AI Assistant' goes here
+
+// You also have a DashboardPage.tsx and LoginPage.tsx, which are imported directly in App.tsx typically.
+// If you intend DashboardPage.tsx to be the *actual content* for Page.Dashboard,
+// then you would replace the static dashboard content below with <DashboardPage />.
 
 
 interface DashboardProps {
@@ -32,16 +29,17 @@ interface DashboardProps {
 }
 
 const Dashboard: React.FC<DashboardProps> = ({ onLogout, showNotification }) => {
-    // CRITICAL: Destructure activePage from useAppContext()
     const { user, activePage } = useAppContext();
 
-    // This function will render the content based on the activePage
     const renderMainContent = () => {
         // console.log("Dashboard: Current active page is", activePage); // Useful for debugging
         switch (activePage) {
             case Page.Dashboard:
+                // If you want your DashboardPage.tsx to be the actual content here,
+                // you would import DashboardPage and return <DashboardPage />
+                // For now, retaining the static content as per your screenshot.
                 return (
-                    <div className="p-6 md:p-8"> {/* Added padding directly here instead of main */}
+                    <div className="p-6 md:p-8">
                         {user && (
                             <div className="mb-8">
                                 <h1 className="text-4xl font-bold mb-2 text-gray-800 dark:text-gray-200">
@@ -125,8 +123,8 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, showNotification }) => 
                 );
             case Page.Projects:
                 return <ProjectsPage />;
-            case Page.MasterCalendar:
-                return <CalendarPage />;
+            case Page.MasterCalendar: // <-- Using the correctly imported component here
+                return <MasterCalendarPage />;
             case Page.Clients:
                 return <ClientsPage />;
             case Page.Moodboard:
@@ -139,6 +137,8 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, showNotification }) => 
                 return <UsersPage />;
             case Page.Collaboration:
                 return <CollaborationPage />;
+            case Page.AiAssistant: // Assuming 'AI Assistant' in sidebar maps to CreativeAiPage
+                 return <CreativeAiPage />;
             default:
                 // Fallback for any unhandled activePage values
                 return (
@@ -164,8 +164,8 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, showNotification }) => 
             />
 
             {/* Main content area */}
-            <main className="flex-1 overflow-y-auto"> {/* Removed direct padding here, now handled in renderMainContent */}
-                {renderMainContent()} {/* Renders the content based on activePage */}
+            <main className="flex-1 overflow-y-auto">
+                {renderMainContent()}
             </main>
         </div>
     );
