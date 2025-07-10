@@ -4,14 +4,14 @@ import React, { useEffect, useCallback, useState } from 'react';
 import { AppProvider, useAppContext, useTheme } from './context/AppContext';
 import { LoginPage } from './pages/LoginPage';
 import Dashboard from './pages/Dashboard';
-// import { User } from './types'; // We will manage user type with Firebase directly or extend it
 import SharedProjectPage from './pages/SharedProjectPage';
 import WelcomePage from './pages/WelcomePage';
+import Notification from './components/Notification'; // <-- IMPORT THE NEW NOTIFICATION COMPONENT
 
 // Import Firebase authentication and firestore instances
 import { auth, db } from './firebase'; // Adjust path if your firebase config is elsewhere
-import { onAuthStateChanged, User as FirebaseAuthUser, signInWithEmailAndPassword } from 'firebase/auth'; // <-- ADDED signInWithEmailAndPassword HERE
-import { doc, getDoc, setDoc } from 'firebase/firestore'; // <-- ADDED setDoc HERE
+import { onAuthStateChanged, User as FirebaseAuthUser, signInWithEmailAndPassword, signOut } from 'firebase/auth'; // <-- ADDED signOut
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 
 // Helper function (remains the same)
 const hexToHslString = (hex: string): string => {
@@ -58,13 +58,24 @@ interface AppUser extends FirebaseAuthUser {
 }
 
 const AppContent: React.FC = () => {
-    // We will no longer manage 'users' array in local state, as Firebase handles it
-    // The 'user' state will now be managed by Firebase Authentication's onAuthStateChanged
-    const { user, setUser, primaryColor } = useAppContext(); // Removed 'users', 'setUsers'
+    const { user, setUser, primaryColor } = useAppContext();
     const { theme } = useTheme();
     const [path, setPath] = useState(window.location.pathname);
     const [isWelcomePhase, setIsWelcomePhase] = useState(true);
     const [isWelcomePageExiting, setIsWelcomePageExiting] = useState(false);
+
+    // NEW State for notifications
+    const [notification, setNotification] = useState<{ message: string | null; type: 'success' | 'error' | null }>({ message: null, type: null });
+
+    // Function to show notification
+    const showNotification = useCallback((message: string, type: 'success' | 'error') => {
+        setNotification({ message, type });
+    }, []);
+
+    // Function to clear notification
+    const clearNotification = useCallback(() => {
+        setNotification({ message: null, type: null });
+    }, []);
 
     useEffect(() => {
         const exitTimer = setTimeout(() => setIsWelcomePageExiting(true), 2500);
@@ -92,7 +103,6 @@ const AppContent: React.FC = () => {
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
             if (firebaseUser) {
-                // Fetch custom user data (like role) from Firestore
                 const userDocRef = doc(db, 'users', firebaseUser.uid);
                 const userDocSnap = await getDoc(userDocRef);
 
@@ -109,18 +119,14 @@ const AppContent: React.FC = () => {
                         name: userData.name || firebaseUser.displayName || firebaseUser.email?.split('@')[0],
                     };
                 } else {
-                     // If user doc doesn't exist, create a basic one (e.g., for users signed up without a role)
-                     // This might happen if you create users directly in Firebase Auth or enable direct sign-ups.
-                     // You might want to set a default 'user' role here.
                      await setDoc(userDocRef, {
                         email: firebaseUser.email,
                         role: 'user', // Default role
-                        // Add other default fields
                         productivityScore: 0,
                         category: 'New User',
                         avatarUrl: firebaseUser.photoURL || `https://i.pravatar.cc/100?u=${firebaseUser.uid}`,
                         name: firebaseUser.displayName || firebaseUser.email?.split('@')[0],
-                     }, { merge: true }); // Use merge to avoid overwriting if doc might exist with partial data
+                     }, { merge: true });
                      appUser = {
                         ...firebaseUser,
                         role: 'user',
@@ -143,16 +149,25 @@ const AppContent: React.FC = () => {
     const handleLogin = useCallback(async (email: string, password: string): Promise<boolean> => {
         try {
             await signInWithEmailAndPassword(auth, email, password);
-            // The onAuthStateChanged listener will handle setting the user state.
+            showNotification('Logged in successfully!', 'success'); // <-- Show success notification
             return true;
         } catch (error: any) {
             console.error("Firebase Login Error:", error);
-            // You might want to display a more user-friendly error message
-            // based on error.code (e.g., auth/wrong-password, auth/user-not-found)
-            alert('Login failed: ' + error.message);
+            showNotification(`Login failed: ${error.message}`, 'error'); // <-- Show error notification
             return false;
         }
-    }, []); // No dependencies related to local user management needed
+    }, [showNotification]); // Add showNotification to dependencies
+
+    // NEW Logout Function
+    const handleLogout = useCallback(async () => {
+        try {
+            await signOut(auth);
+            showNotification('Logged out successfully!', 'success'); // <-- Show success notification
+        } catch (error: any) {
+            console.error("Firebase Logout Error:", error);
+            showNotification(`Logout failed: ${error.message}`, 'error'); // <-- Show error notification
+        }
+    }, [showNotification]); // Add showNotification to dependencies
 
     useEffect(() => {
         document.documentElement.className = theme;
@@ -180,8 +195,8 @@ const AppContent: React.FC = () => {
         if (!user) {
             return <LoginPage onLogin={handleLogin} />;
         }
-    
-        return <Dashboard />;
+        // Pass handleLogout to the Dashboard component
+        return <Dashboard onLogout={handleLogout} />; // <-- Pass onLogout prop
     })();
 
     return (
@@ -198,6 +213,12 @@ const AppContent: React.FC = () => {
             <div className="animate-app-fade-in">
                 {mainContent}
             </div>
+            {/* Render the Notification component */}
+            <Notification
+                message={notification.message}
+                type={notification.type}
+                onClose={clearNotification}
+            />
         </>
     );
 };
