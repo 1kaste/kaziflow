@@ -5,31 +5,25 @@ import Sidebar from '../components/Sidebar';
 import { Page } from '../types'; // Make sure this import is correct and Page enum is defined
 
 // =======================================================================
-// IMPORTANT: IMPORT YOUR SPECIFIC PAGE COMPONENTS HERE
-// You will need to create these files if they don't exist yet,
-// e.g., src/pages/ProjectsPage.tsx, src/pages/CalendarPage.tsx, etc.
-// Replace the comments with actual imports like:
-// import ProjectsPage from './ProjectsPage';
-// import CalendarPage from './CalendarPage';
-// import ClientsPage from './ClientsPage';
-// import MoodboardPage from './MoodboardPage';
-// import PomodoroPage from './PomodoroPage';
-// import SettingsPage from './SettingsPage';
-// import UsersPage from './UsersPage';
-// import CollaborationPage from './CollaborationPage';
+// IMPORTANT: ACTUAL IMPORTS FOR YOUR PAGE COMPONENTS
+// These imports assume you have files like:
+// src/pages/ProjectsPage.tsx
+// src/pages/CalendarPage.tsx
+// src/pages/ClientsPage.tsx
+// src/pages/MoodboardPage.tsx
+// src/pages/PomodoroPage.tsx
+// src/pages/SettingsPage.tsx
+// src/pages/UsersPage.tsx
+// src/pages/CollaborationPage.tsx
 // =======================================================================
-
-// --- Placeholder Components (REMOVE THESE ONCE YOU CREATE YOUR ACTUAL PAGES) ---
-// You MUST create actual files for these, e.g., src/pages/ProjectsPage.tsx
-const ProjectsPage: React.FC = () => <div className="p-6 md:p-8"><h2 className="text-3xl font-semibold text-gray-800 dark:text-gray-200">Projects Page Content</h2><p className="text-gray-600 dark:text-gray-400 mt-2">This is the content for your projects. Replace this with your actual Projects component.</p></div>;
-const CalendarPage: React.FC = () => <div className="p-6 md:p-8"><h2 className="text-3xl font-semibold text-gray-800 dark:text-gray-200">Calendar Page Content</h2><p className="text-gray-600 dark:text-gray-400 mt-2">This is the content for your calendar. Replace this with your actual Calendar component.</p></div>;
-const ClientsPage: React.FC = () => <div className="p-6 md:p-8"><h2 className="text-3xl font-semibold text-gray-800 dark:text-gray-200">Clients Page Content</h2><p className="text-gray-600 dark:text-gray-400 mt-2">This is the content for your clients. Replace this with your actual Clients component.</p></div>;
-const MoodboardPage: React.FC = () => <div className="p-6 md:p-8"><h2 className="text-3xl font-semibold text-gray-800 dark:text-gray-200">Moodboard Page Content</h2><p className="text-gray-600 dark:text-gray-400 mt-2">This is the content for your moodboard. Replace this with your actual Moodboard component.</p></div>;
-const PomodoroPage: React.FC = () => <div className="p-6 md:p-8"><h2 className="text-3xl font-semibold text-gray-800 dark:text-gray-200">Pomodoro Page Content</h2><p className="text-gray-600 dark:text-gray-400 mt-2">This is the content for your Pomodoro timer. Replace this with your actual Pomodoro component.</p></div>;
-const SettingsPage: React.FC = () => <div className="p-6 md:p-8"><h2 className="text-3xl font-semibold text-gray-800 dark:text-gray-200">Settings Page Content</h2><p className="text-gray-600 dark:text-gray-400 mt-2">This is the content for your settings. Replace this with your actual Settings component.</p></div>;
-const UsersPage: React.FC = () => <div className="p-6 md:p-8"><h2 className="text-3xl font-semibold text-gray-800 dark:text-gray-200">Users Page Content</h2><p className="text-gray-600 dark:text-gray-400 mt-2">This is the content for user management. Replace this with your actual Users component.</p></div>;
-const CollaborationPage: React.FC = () => <div className="p-6 md:p-8"><h2 className="text-3xl font-semibold text-gray-800 dark:text-gray-200">Collaboration Page Content</h2><p className="text-gray-600 dark:text-gray-400 mt-2">This is the content for team collaboration. Replace this with your actual Collaboration component.</p></div>;
-// --- END Placeholder Components ---
+import ProjectsPage from './ProjectsPage';
+import CalendarPage from './CalendarPage';
+import ClientsPage from './ClientsPage';
+import MoodboardPage from './MoodboardPage';
+import PomodoroPage from './PomodoroPage';
+import SettingsPage from './SettingsPage';
+import UsersPage from './UsersPage';
+import CollaborationPage from './CollaborationPage';
 
 
 interface DashboardProps {
