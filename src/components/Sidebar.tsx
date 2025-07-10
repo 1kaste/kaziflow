@@ -20,7 +20,7 @@ const NavItem: React.FC<NavItemProps> = ({ icon, label, isActive, onClick, isExp
     return (
         <li
             onClick={onClick}
-            className={`flex items-center p-3 my-1 rounded-lg cursor-pointer transition-all duration-200 
+            className={`flex items-center p-3 my-1 rounded-lg cursor-pointer transition-all duration-200
                 ${isActive
                     ? 'bg-brand-teal text-white shadow-lg'
                     : 'text-gray-400 hover:bg-dark-secondary hover:text-white dark:hover:bg-gray-700'
@@ -38,12 +38,12 @@ const NavItem: React.FC<NavItemProps> = ({ icon, label, isActive, onClick, isExp
 interface SidebarProps {
     isMobile?: boolean;
     onLinkClick?: () => void;
-    onLogout: () => Promise<void>; // <-- ADDED: Prop for the logout function
-    showNotification: (message: string, type: 'success' | 'error') => void; // <-- ADDED: Prop for showing notifications
+    onLogout: () => Promise<void>;
+    showNotification: (message: string, type: 'success' | 'error') => void;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ isMobile = false, onLinkClick, onLogout, showNotification }) => { // <-- Destructure new props
-    const { user, activePage, setActivePage, systemLogoUrl } = useAppContext(); // Removed setUser as logout is handled via prop
+const Sidebar: React.FC<SidebarProps> = ({ isMobile = false, onLinkClick, onLogout, showNotification }) => {
+    const { user, activePage, setActivePage, systemLogoUrl } = useAppContext();
     const [isAiPanelOpen, setIsAiPanelOpen] = useState(false);
     const [isPinnedOpen, setIsPinnedOpen] = useState(false);
 
@@ -58,12 +58,11 @@ const Sidebar: React.FC<SidebarProps> = ({ isMobile = false, onLinkClick, onLogo
         { icon: <PomodoroIcon />, label: 'Pomodoro', page: Page.Pomodoro, adminOnly: false },
         { icon: <SettingsIcon />, label: 'Settings', page: Page.Settings, adminOnly: false },
     ];
-    
-    // Now, handleLogout just calls the prop passed from App.tsx
-    const handleLogout = async () => { // Changed to async as onLogout is async
-        await onLogout(); // Call the onLogout prop which handles Firebase signOut and notifications
+
+    const handleLogout = async () => {
+        await onLogout();
     };
-    
+
     const handleLinkClick = (page: Page) => {
         setActivePage(page);
         if (onLinkClick) {
@@ -81,7 +80,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isMobile = false, onLinkClick, onLogo
         : `group ${isAiPanelOpen ? 'w-[400px]' : (isPinnedOpen ? 'w-64' : 'w-20 hover:w-64')} transition-all duration-300 ease-in-out bg-light-secondary dark:bg-dark-secondary shadow-2xl flex flex-col`;
 
     const isSidebarExpanded = isMobile || isPinnedOpen;
-    
+
     const bottomSpanClasses = isSidebarExpanded
         ? "ml-4 font-medium"
         : "ml-4 font-medium overflow-hidden transition-all duration-300 ease-in-out whitespace-nowrap opacity-0 group-hover:opacity-100";
@@ -98,7 +97,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isMobile = false, onLinkClick, onLogo
                             <div className={`w-10 h-10 bg-brand-teal rounded-full flex-shrink-0 flex items-center justify-center text-white font-bold text-lg ${isSidebarExpanded ? 'hidden' : 'group-hover:hidden'}`}>
                                 {systemLogoUrl ? <img src={systemLogoUrl} alt="Logo" className="w-full h-full object-cover rounded-full" /> : 'K'}
                             </div>
-                            
+
                             <div className={`${isSidebarExpanded ? 'block' : 'hidden group-hover:block'} transition-opacity duration-300`}>
                                 {systemLogoUrl ? (
                                     <img src={systemLogoUrl} alt="Kazi Flow Logo" className="h-12 max-w-[180px] object-contain" />
@@ -110,7 +109,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isMobile = false, onLinkClick, onLogo
                         <ul className="p-3">
                             {navItems.map((item) => {
                                 // IMPORTANT: Ensure user?.role is correctly set based on your Firestore 'role' field
-                                // It was user?.category.includes('Admin') previously
                                 if (item.adminOnly && user?.role !== 'admin') return null;
                                 return (
                                 <NavItem
@@ -135,26 +133,29 @@ const Sidebar: React.FC<SidebarProps> = ({ isMobile = false, onLinkClick, onLogo
                         </ul>
                     </div>
                     <div className="p-3 border-t border-gray-200 dark:border-gray-700 flex-shrink-0">
-                        {!isMobile && (
+                        {/* Corrected: Wrapped the list items in a <ul> element for valid JSX structure */}
+                        <ul className="list-none p-0 m-0">
+                            {!isMobile && (
+                                <li
+                                    onClick={handleTogglePin}
+                                    className="flex items-center p-3 my-1 rounded-lg cursor-pointer transition-all duration-200 text-gray-400 hover:bg-dark-secondary hover:text-white dark:hover:bg-gray-700"
+                                >
+                                    {isPinnedOpen ? <ChevronDoubleLeftIcon /> : <ChevronDoubleRightIcon />}
+                                    <span className={bottomSpanClasses}>
+                                        {isPinnedOpen ? 'Unpin' : 'Pin'}
+                                    </span>
+                                </li>
+                            )}
                             <li
-                                onClick={handleTogglePin}
-                                className="flex items-center p-3 my-1 rounded-lg cursor-pointer transition-all duration-200 text-gray-400 hover:bg-dark-secondary hover:text-white dark:hover:bg-gray-700"
+                                onClick={handleLogout}
+                                className="flex items-center p-3 my-1 rounded-lg cursor-pointer transition-all duration-200 text-gray-400 hover:bg-red-500/20 hover:text-red-400"
                             >
-                                {isPinnedOpen ? <ChevronDoubleLeftIcon /> : <ChevronDoubleRightIcon />}
+                                <LogoutIcon />
                                 <span className={bottomSpanClasses}>
-                                    {isPinnedOpen ? 'Unpin' : 'Pin'}
+                                    Logout
                                 </span>
                             </li>
-                        )}
-                        <li
-                            onClick={handleLogout} {/* This now calls the prop */}
-                            className="flex items-center p-3 my-1 rounded-lg cursor-pointer transition-all duration-200 text-gray-400 hover:bg-red-500/20 hover:text-red-400"
-                        >
-                            <LogoutIcon />
-                            <span className={bottomSpanClasses}>
-                                Logout
-                            </span>
-                        </li>
+                        </ul>
                     </div>
                 </>
             )}
