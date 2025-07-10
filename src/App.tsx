@@ -10,8 +10,8 @@ import WelcomePage from './pages/WelcomePage';
 
 // Import Firebase authentication and firestore instances
 import { auth, db } from './firebase'; // Adjust path if your firebase config is elsewhere
-import { onAuthStateChanged, User as FirebaseAuthUser } from 'firebase/auth';
-import { doc, getDoc } from 'firebase/firestore';
+import { onAuthStateChanged, User as FirebaseAuthUser, signInWithEmailAndPassword } from 'firebase/auth'; // <-- ADDED signInWithEmailAndPassword HERE
+import { doc, getDoc, setDoc } from 'firebase/firestore'; // <-- ADDED setDoc HERE
 
 // Helper function (remains the same)
 const hexToHslString = (hex: string): string => {
