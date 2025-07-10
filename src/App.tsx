@@ -1,12 +1,19 @@
+// src/App.tsx
 
 import React, { useEffect, useCallback, useState } from 'react';
 import { AppProvider, useAppContext, useTheme } from './context/AppContext';
 import { LoginPage } from './pages/LoginPage';
 import Dashboard from './pages/Dashboard';
-import { User } from './types';
+// import { User } from './types'; // We will manage user type with Firebase directly or extend it
 import SharedProjectPage from './pages/SharedProjectPage';
 import WelcomePage from './pages/WelcomePage';
 
+// Import Firebase authentication and firestore instances
+import { auth, db } from './firebase'; // Adjust path if your firebase config is elsewhere
+import { onAuthStateChanged, User as FirebaseAuthUser } from 'firebase/auth';
+import { doc, getDoc } from 'firebase/firestore';
+
+// Helper function (remains the same)
 const hexToHslString = (hex: string): string => {
     hex = hex.replace('#', '');
     if (hex.length === 3) {
@@ -40,8 +47,20 @@ const hexToHslString = (hex: string): string => {
     return `${h.toFixed(1)} ${s.toFixed(1)}% ${l.toFixed(1)}%`;
 };
 
+// Define an extended user type to include custom role from Firestore
+interface AppUser extends FirebaseAuthUser {
+    role?: 'user' | 'admin';
+    // Add any other custom user properties you store in Firestore
+    productivityScore?: number;
+    category?: string;
+    avatarUrl?: string;
+    name?: string; // Derived from email or display name
+}
+
 const AppContent: React.FC = () => {
-    const { user, setUser, users, setUsers, primaryColor } = useAppContext();
+    // We will no longer manage 'users' array in local state, as Firebase handles it
+    // The 'user' state will now be managed by Firebase Authentication's onAuthStateChanged
+    const { user, setUser, primaryColor } = useAppContext(); // Removed 'users', 'setUsers'
     const { theme } = useTheme();
     const [path, setPath] = useState(window.location.pathname);
     const [isWelcomePhase, setIsWelcomePhase] = useState(true);
@@ -69,36 +88,71 @@ const AppContent: React.FC = () => {
         }
     }, [primaryColor]);
 
+    // Firebase Authentication Listener
+    useEffect(() => {
+        const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+            if (firebaseUser) {
+                // Fetch custom user data (like role) from Firestore
+                const userDocRef = doc(db, 'users', firebaseUser.uid);
+                const userDocSnap = await getDoc(userDocRef);
 
-    const handleLogin = useCallback((email: string, password: string): boolean => {
-        const foundUser = users.find(u => u.email === email);
+                let appUser: AppUser = firebaseUser;
 
-        if (foundUser) {
-            if (foundUser.password === password) {
-                setUser(foundUser);
-                return true;
+                if (userDocSnap.exists()) {
+                    const userData = userDocSnap.data();
+                    appUser = {
+                        ...firebaseUser,
+                        role: userData.role,
+                        productivityScore: userData.productivityScore,
+                        category: userData.category,
+                        avatarUrl: userData.avatarUrl || firebaseUser.photoURL,
+                        name: userData.name || firebaseUser.displayName || firebaseUser.email?.split('@')[0],
+                    };
+                } else {
+                     // If user doc doesn't exist, create a basic one (e.g., for users signed up without a role)
+                     // This might happen if you create users directly in Firebase Auth or enable direct sign-ups.
+                     // You might want to set a default 'user' role here.
+                     await setDoc(userDocRef, {
+                        email: firebaseUser.email,
+                        role: 'user', // Default role
+                        // Add other default fields
+                        productivityScore: 0,
+                        category: 'New User',
+                        avatarUrl: firebaseUser.photoURL || `https://i.pravatar.cc/100?u=${firebaseUser.uid}`,
+                        name: firebaseUser.displayName || firebaseUser.email?.split('@')[0],
+                     }, { merge: true }); // Use merge to avoid overwriting if doc might exist with partial data
+                     appUser = {
+                        ...firebaseUser,
+                        role: 'user',
+                        productivityScore: 0,
+                        category: 'New User',
+                        avatarUrl: firebaseUser.photoURL || `https://i.pravatar.cc/100?u=${firebaseUser.uid}`,
+                        name: firebaseUser.displayName || firebaseUser.email?.split('@')[0],
+                     }
+                }
+                setUser(appUser);
+            } else {
+                setUser(null); // No user logged in
             }
-            return false;
-        } else {
-            if (email.startsWith('admin@')) {
-                const namePart = email.split('@')[0];
-                const newUser: User = {
-                    id: `u${Date.now()}`,
-                    name: namePart.charAt(0).toUpperCase() + namePart.slice(1),
-                    email,
-                    password,
-                    avatarUrl: `https://i.pravatar.cc/100?u=${email}`,
-                    category: 'Temporary Admin',
-                    productivityScore: 750,
-                };
-    
-                setUsers(prev => [...prev, newUser]);
-                setUser(newUser);
-                return true;
-            }
+        });
+
+        return () => unsubscribe(); // Cleanup subscription
+    }, [setUser]);
+
+
+    const handleLogin = useCallback(async (email: string, password: string): Promise<boolean> => {
+        try {
+            await signInWithEmailAndPassword(auth, email, password);
+            // The onAuthStateChanged listener will handle setting the user state.
+            return true;
+        } catch (error: any) {
+            console.error("Firebase Login Error:", error);
+            // You might want to display a more user-friendly error message
+            // based on error.code (e.g., auth/wrong-password, auth/user-not-found)
+            alert('Login failed: ' + error.message);
             return false;
         }
-    }, [users, setUser, setUsers]);
+    }, []); // No dependencies related to local user management needed
 
     useEffect(() => {
         document.documentElement.className = theme;
