@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { Page } from '../types';
@@ -39,10 +38,12 @@ const NavItem: React.FC<NavItemProps> = ({ icon, label, isActive, onClick, isExp
 interface SidebarProps {
     isMobile?: boolean;
     onLinkClick?: () => void;
+    onLogout: () => Promise<void>; // <-- ADDED: Prop for the logout function
+    showNotification: (message: string, type: 'success' | 'error') => void; // <-- ADDED: Prop for showing notifications
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ isMobile = false, onLinkClick }) => {
-    const { user, activePage, setActivePage, setUser, systemLogoUrl } = useAppContext();
+const Sidebar: React.FC<SidebarProps> = ({ isMobile = false, onLinkClick, onLogout, showNotification }) => { // <-- Destructure new props
+    const { user, activePage, setActivePage, systemLogoUrl } = useAppContext(); // Removed setUser as logout is handled via prop
     const [isAiPanelOpen, setIsAiPanelOpen] = useState(false);
     const [isPinnedOpen, setIsPinnedOpen] = useState(false);
 
@@ -58,9 +59,10 @@ const Sidebar: React.FC<SidebarProps> = ({ isMobile = false, onLinkClick }) => {
         { icon: <SettingsIcon />, label: 'Settings', page: Page.Settings, adminOnly: false },
     ];
     
-    const handleLogout = () => {
-        setUser(null);
-    }
+    // Now, handleLogout just calls the prop passed from App.tsx
+    const handleLogout = async () => { // Changed to async as onLogout is async
+        await onLogout(); // Call the onLogout prop which handles Firebase signOut and notifications
+    };
     
     const handleLinkClick = (page: Page) => {
         setActivePage(page);
@@ -107,7 +109,9 @@ const Sidebar: React.FC<SidebarProps> = ({ isMobile = false, onLinkClick }) => {
                         </div>
                         <ul className="p-3">
                             {navItems.map((item) => {
-                                if (item.adminOnly && !user?.category.includes('Admin')) return null;
+                                // IMPORTANT: Ensure user?.role is correctly set based on your Firestore 'role' field
+                                // It was user?.category.includes('Admin') previously
+                                if (item.adminOnly && user?.role !== 'admin') return null;
                                 return (
                                 <NavItem
                                         key={item.page}
@@ -119,7 +123,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isMobile = false, onLinkClick }) => {
                                     />
                                 )
                             })}
-                             <li
+                            <li
                                 onClick={() => setIsAiPanelOpen(true)}
                                 className="flex items-center p-3 my-1 rounded-lg cursor-pointer transition-all duration-200 text-gray-400 hover:bg-dark-secondary hover:text-white dark:hover:bg-gray-700"
                             >
@@ -143,7 +147,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isMobile = false, onLinkClick }) => {
                             </li>
                         )}
                         <li
-                            onClick={handleLogout}
+                            onClick={handleLogout} {/* This now calls the prop */}
                             className="flex items-center p-3 my-1 rounded-lg cursor-pointer transition-all duration-200 text-gray-400 hover:bg-red-500/20 hover:text-red-400"
                         >
                             <LogoutIcon />
