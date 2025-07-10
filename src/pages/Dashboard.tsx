@@ -8,19 +8,14 @@ import { Page } from '../types'; // Make sure this import is correct and Page en
 // IMPORTANT: ACTUAL IMPORTS FOR YOUR PAGE COMPONENTS
 // =======================================================================
 import ProjectsPage from './ProjectsPage';
-import MasterCalendarPage from './MasterCalendarPage'; // <-- CORRECTED THIS IMPORT
+import MasterCalendarPage from './MasterCalendarPage';
 import ClientsPage from './ClientsPage';
-import MoodboardPage from './ './MoodboardPage'; // Corrected potential typo here if it was './ ./MoodboardPage'
+import MoodboardPage from './MoodboardPage'; // <-- CORRECTED THIS LINE
 import PomodoroPage from './PomodoroPage';
 import SettingsPage from './SettingsPage';
 import UsersPage from './UsersPage';
 import CollaborationPage from './CollaborationPage';
-// Also ensure you import CreativeAiPage.tsx if you intend to use it from the sidebar
-import CreativeAiPage from './CreativeAiPage'; // <-- Added this import, assuming 'AI Assistant' goes here
-
-// You also have a DashboardPage.tsx and LoginPage.tsx, which are imported directly in App.tsx typically.
-// If you intend DashboardPage.tsx to be the *actual content* for Page.Dashboard,
-// then you would replace the static dashboard content below with <DashboardPage />.
+import CreativeAiPage from './CreativeAiPage'; // Assuming 'AI Assistant' in sidebar maps to CreativeAiPage
 
 
 interface DashboardProps {
@@ -35,9 +30,6 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, showNotification }) => 
         // console.log("Dashboard: Current active page is", activePage); // Useful for debugging
         switch (activePage) {
             case Page.Dashboard:
-                // If you want your DashboardPage.tsx to be the actual content here,
-                // you would import DashboardPage and return <DashboardPage />
-                // For now, retaining the static content as per your screenshot.
                 return (
                     <div className="p-6 md:p-8">
                         {user && (
@@ -123,7 +115,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, showNotification }) => 
                 );
             case Page.Projects:
                 return <ProjectsPage />;
-            case Page.MasterCalendar: // <-- Using the correctly imported component here
+            case Page.MasterCalendar:
                 return <MasterCalendarPage />;
             case Page.Clients:
                 return <ClientsPage />;
@@ -137,10 +129,9 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, showNotification }) => 
                 return <UsersPage />;
             case Page.Collaboration:
                 return <CollaborationPage />;
-            case Page.AiAssistant: // Assuming 'AI Assistant' in sidebar maps to CreativeAiPage
+            case Page.AiAssistant:
                  return <CreativeAiPage />;
             default:
-                // Fallback for any unhandled activePage values
                 return (
                     <div className="p-6 md:p-8">
                         <h2 className="text-3xl font-semibold text-gray-800 dark:text-gray-200">
@@ -160,7 +151,6 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, showNotification }) => 
             <Sidebar
                 onLogout={onLogout}
                 showNotification={showNotification}
-                // isMobile and onLinkClick props can be added here if you manage mobile sidebar from Dashboard
             />
 
             {/* Main content area */}
