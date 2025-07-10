@@ -15,7 +15,7 @@ const Notification: React.FC<NotificationProps> = ({ message, type, onClose }) =
       const timer = setTimeout(() => {
         setIsVisible(false);
         // Give time for animation before clearing message
-        setTimeout(onClose, 500); 
+        setTimeout(onClose, 500);
       }, 3000); // Notification visible for 3 seconds
       return () => clearTimeout(timer);
     } else {
