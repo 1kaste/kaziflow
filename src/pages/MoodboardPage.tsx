@@ -1,15 +1,4 @@
-
-
-
-
-
-
-
-
-
-
-
-
+// src/pages/MoodboardPage.tsx
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { MoodboardItem } from '../types';
 import { PlusCircleIcon, TrashIcon, ResetIcon, CloseIcon } from '../constants';
@@ -44,7 +33,7 @@ const EditMoodboardItemModal: React.FC<{
     }, [itemToEdit]);
 
     const handleSave = () => {
-        if (!item.content) {
+        if (!item.content && !item.backgroundImageUrl) { // Updated content check for image URL
             alert('Please add some content or an image URL.');
             return;
         }
@@ -112,7 +101,7 @@ const EditMoodboardItemModal: React.FC<{
                     ) : (
                          <input type="text" value={item.content} onChange={e => setItem({...item, content: e.target.value})} placeholder="Image URL..." className="w-full form-input"/>
                     )}
-                                        
+                                                
                     <div className="flex justify-end gap-3 pt-4">
                         <button onClick={onClose} className="px-4 py-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700">Cancel</button>
                         <button onClick={handleSave} className="px-4 py-2 bg-brand-teal text-white font-semibold rounded-md">Save</button>
@@ -138,14 +127,14 @@ const EditMoodboardItemModal: React.FC<{
                     )}
                 </div>
             </div>
-             <style>{`
+            <style>{`
                 .form-input, .form-textarea, .form-select {
-                     width: 100%;
-                     padding: 0.5rem 0.75rem;
-                     background-color: white;
-                     color: #1f2937;
-                     border: 1px solid #d1d5db;
-                     border-radius: 0.375rem;
+                    width: 100%;
+                    padding: 0.5rem 0.75rem;
+                    background-color: white;
+                    color: #1f2937;
+                    border: 1px solid #d1d5db;
+                    border-radius: 0.375rem;
                 }
                 .dark .form-input, .dark .form-textarea, .dark .form-select {
                     background-color: #2c2c2c;
@@ -201,7 +190,7 @@ const TrashModal: React.FC<{
                 </div>
                 <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">Items here can be restored or permanently deleted.</p>
                 <div className="flex-grow overflow-y-auto pr-2 -mr-4">
-                     {items.length > 0 ? (
+                    {items.length > 0 ? (
                         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                             {items.map(item => (
                                 <div key={item.id} className="rounded-lg bg-white dark:bg-dark-primary flex flex-col group shadow-md">
@@ -288,9 +277,9 @@ const MoodboardItemComponent: React.FC<{
         if (!itemRef.current || !trashCanRef.current) return false;
         const itemRect = itemRef.current.getBoundingClientRect();
         const trashRect = trashCanRef.current.getBoundingClientRect();
-        return !(itemRect.right < trashRect.left || 
-                 itemRect.left > trashRect.right || 
-                 itemRect.bottom < trashRect.top || 
+        return !(itemRect.right < trashRect.left ||
+                 itemRect.left > trashRect.right ||
+                 itemRect.bottom < trashRect.top ||
                  itemRect.top > trashRect.bottom);
     }, [trashCanRef]);
 
@@ -428,7 +417,7 @@ export const MoodboardPage: React.FC<{
         const itemToRestore = trashedItems.find(item => item.id === itemId);
         if (itemToRestore) {
             onUpdateMoodboard({
-                items: [...items, { ...itemToRestore, x: 20, y: 20, zIndex: Math.max(0, ...items.map(i => i.zIndex)) + 1 }],
+                items: [...items, { ...itemToRestore, x: 20, y: 20, zIndex: Math.max(0, ...items.map(i => i.zIndex || 0)) + 1 }],
                 trashedItems: trashedItems.filter(item => item.id !== itemId)
             });
         }
@@ -480,8 +469,8 @@ export const MoodboardPage: React.FC<{
 
     const handleBringToFront = useCallback((itemToFront: MoodboardItem) => {
         if (!isEditable) return;
-        const maxZ = Math.max(0, ...items.map(i => i.zIndex));
-        if (itemToFront.zIndex <= maxZ) {
+        const maxZ = Math.max(0, ...items.map(i => i.zIndex || 0)); // Added || 0 for safety
+        if (itemToFront.zIndex === undefined || itemToFront.zIndex <= maxZ) { // Check for undefined zIndex
             onUpdateMoodboard({
                 items: items.map(item =>
                     item.id === itemToFront.id ? { ...item, zIndex: maxZ + 1 } : item
@@ -502,20 +491,20 @@ export const MoodboardPage: React.FC<{
     return (
         <div>
             <div className="flex justify-between items-center mb-6">
-                 {title ? <h2 className="text-3xl font-bold text-gray-800 dark:text-gray-100">{title}</h2> : <div />}
-                 {isEditable && (
-                    <button onClick={handleAddItem} className="flex items-center gap-2 px-4 py-2 bg-brand-teal text-white font-semibold rounded-lg shadow-md hover:bg-opacity-90 transition-colors">
-                        <PlusCircleIcon className="w-5 h-5"/>
-                        Add Item
-                    </button>
-                 )}
+                    {title ? <h2 className="text-3xl font-bold text-gray-800 dark:text-gray-100">{title}</h2> : <div />}
+                    {isEditable && (
+                        <button onClick={handleAddItem} className="flex items-center gap-2 px-4 py-2 bg-brand-teal text-white font-semibold rounded-lg shadow-md hover:bg-opacity-90 transition-colors">
+                            <PlusCircleIcon className="w-5 h-5"/>
+                            Add Item
+                        </button>
+                    )}
             </div>
             
             <div ref={canvasRef} className="relative w-full h-[1200px] bg-gray-100 dark:bg-dark-primary/20 rounded-lg shadow-inner overflow-auto border border-gray-200 dark:border-gray-700">
                 {items.map(item => (
-                    <MoodboardItemComponent 
-                        key={item.id} 
-                        item={item} 
+                    <MoodboardItemComponent
+                        key={item.id}
+                        item={item}
                         onUpdate={handleUpdateItem}
                         onEdit={handleEditItem}
                         onTrash={handleTrashItem}
@@ -533,11 +522,11 @@ export const MoodboardPage: React.FC<{
 
             {isModalOpen && <EditMoodboardItemModal itemToEdit={editingItem} onClose={() => setIsModalOpen(false)} onSave={handleSaveItem}/>}
             
-            <TrashModal 
-                isOpen={isTrashModalOpen} 
-                onClose={() => setIsTrashModalOpen(false)} 
-                items={trashedItems} 
-                onRestore={handleRestoreItem} 
+            <TrashModal
+                isOpen={isTrashModalOpen}
+                onClose={() => setIsTrashModalOpen(false)}
+                items={trashedItems}
+                onRestore={handleRestoreItem}
                 onPermanentlyDelete={handlePermanentlyDeleteItem}
             />
 
@@ -550,7 +539,7 @@ export const MoodboardPage: React.FC<{
                 <p>Are you sure you want to permanently delete this moodboard item? This action cannot be undone.</p>
                 {deletingItem && (
                     <div className="mt-4 p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-gray-100 dark:bg-dark-primary">
-                        {deletingItem.type === 'image' ? 
+                        {deletingItem.type === 'image' ?
                             <img src={deletingItem.content} alt="Item to delete" className="max-h-24 mx-auto rounded"/> :
                             <p className="text-sm italic truncate">"{deletingItem.content}"</p>
                         }
@@ -561,3 +550,5 @@ export const MoodboardPage: React.FC<{
         </div>
     );
 };
+
+export default MoodboardPage; // <--- ADDED THIS DEFAULT EXPORT
